@@ -1,5 +1,7 @@
 package com.gdse.aad.guestfindbackend.config;
 
+import com.gdse.aad.guestfindbackend.exception.CustomAccessDeniedHandler;
+import com.gdse.aad.guestfindbackend.exception.CustomAuthenticationEntryPoint;
 import com.gdse.aad.guestfindbackend.util.JwtAuthFilter;
 import com.gdse.aad.guestfindbackend.service.impl.CustomUserDetailsServiceImpl;
 import lombok.RequiredArgsConstructor;
@@ -26,17 +28,23 @@ public class SecurityConfig {
 
     private final CustomUserDetailsServiceImpl customUserDetailsService;
     private final JwtAuthFilter jwtAuthFilter;
+    private final CustomAccessDeniedHandler accessDeniedHandler;
+    private final CustomAuthenticationEntryPoint authenticationEntryPoint;
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
-                .csrf(AbstractHttpConfigurer::disable)
+                .csrf(csrf -> csrf.disable())
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/auth/**").permitAll()
                         .anyRequest().authenticated()
                 )
-                .sessionManagement(s -> s.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                .exceptionHandling(ex -> ex
+                        .authenticationEntryPoint(authenticationEntryPoint)
+                        .accessDeniedHandler(accessDeniedHandler)
+                )
+                .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authenticationProvider(authenticationProvider())
                 .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
 
@@ -67,4 +75,5 @@ public class SecurityConfig {
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
     }
+
 }
