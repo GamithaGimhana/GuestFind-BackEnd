@@ -3,6 +3,7 @@ package com.gdse.aad.guestfindbackend.exception;
 import com.gdse.aad.guestfindbackend.dto.ApiResponseDTO;
 import io.jsonwebtoken.ExpiredJwtException;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -28,6 +29,12 @@ public class GlobalExceptionHandler {
     @ResponseStatus(HttpStatus.UNAUTHORIZED)
     public ApiResponseDTO handleJWTTokenExpiredException(ExpiredJwtException ex) {
         return new ApiResponseDTO(401, "JWT Token Expired", null);
+    }
+
+    @ExceptionHandler(AccessDeniedException.class)
+    @ResponseStatus(HttpStatus.FORBIDDEN)
+    public ApiResponseDTO handleAccessDenied(AccessDeniedException ex) {
+        return new ApiResponseDTO(403, "Forbidden - You don’t have permission", null);
     }
 
     @ExceptionHandler(RuntimeException.class)
